@@ -35,16 +35,31 @@ class DatabaseMapper {
     return movies;
   }
 
-  MoviesDbEntity toMoviesDbEntity(Movie movies) {
+  MoviesDbEntity toMoviesDbEntity(Movie movie) {
     try {
       return MoviesDbEntity(
         id: null,
-        movieId: movies.id,
-        title: movies.title,
-        releaseDate: movies.releaseDate.millisecondsSinceEpoch,
+        movieId: movie.id,
+        title: movie.title,
+        imageUrl: movie.imageUrl,
+        releaseDate: movie.releaseDate.millisecondsSinceEpoch,
       );
     } catch (e) {
       throw ExceptionMapper<Movie, MoviesDbEntity>(e.toString());
     }
+  }
+
+  List<MoviesDbEntity> toMovieDbEntities(List<Movie> movies) {
+    final List<MoviesDbEntity> entities = [];
+
+    for (final movie in movies) {
+      try {
+        entities.add(toMoviesDbEntity(movie));
+      } catch (e) {
+        log.w('Could not map movie ${movie.id}', error: e);
+      }
+    }
+
+    return entities;
   }
 }

@@ -18,6 +18,7 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
   late final MoviesListModel _model;
   final PagingController<int, Movie> _pagingController =
       PagingController(firstPageKey: 1);
+  late final Future<void> _future;
 
   @override
   void initState() {
@@ -27,6 +28,8 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
       log: Provider.of<Logger>(context, listen: false),
       moviesRepository: Provider.of<MoviesRepository>(context, listen: false),
     );
+
+    _future = _checkNewData();
 
     _pagingController.addPageRequestListener((pageKey) async {
       try {
@@ -50,22 +53,52 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
       appBar: AppBar(
         title: Text('Upcoming Movies'),
       ),
-      body: PagedListView(
-        pagingController: _pagingController,
-        builderDelegate: PagedChildBuilderDelegate<Movie>(
-          itemBuilder: (context, movie, index) => Container(
-            padding: const EdgeInsets.only(
-              left: 12.0,
-              top: 6.0,
-              right: 12.0,
-              bottom: 6.0,
-            ),
-            child: MoviesPreview(
-              movie: movie,
+      body: FutureBuilder<void>(
+        future: _future,
+        builder: (context, snapshot) => RefreshIndicator(
+          onRefresh: _refresh,
+          child: PagedListView(
+            pagingController: _pagingController,
+            builderDelegate: PagedChildBuilderDelegate<Movie>(
+              itemBuilder: (context, movie, index) => Container(
+                padding: const EdgeInsets.only(
+                  left: 12.0,
+                  top: 6.0,
+                  right: 12.0,
+                  bottom: 6.0,
+                ),
+                child: MoviesPreview(
+                  movie: movie,
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _refresh() async {
+    await _model.deletePersistedMovies();
+    _pagingController.refresh();
+  }
+
+  Future<void> _checkNewData() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final hasNewData = await _model.hasNewData();
+
+      if (hasNewData) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: const Text('Refresh to obtain the new available data'),
+            action: SnackBarAction(
+              label: 'Refresh',
+              onPressed: _refresh,
+            ),
+          ),
+        );
+      }
+    });
   }
 }
