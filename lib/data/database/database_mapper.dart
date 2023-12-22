@@ -1,0 +1,50 @@
+import 'package:flutter_movies_app_clean_architecture/data/database/entity/movies_db_entity.dart';
+import 'package:flutter_movies_app_clean_architecture/domain/exceptions/exception_mapper.dart';
+import 'package:flutter_movies_app_clean_architecture/domain/models/movie_model.dart';
+import 'package:logger/logger.dart';
+
+class DatabaseMapper {
+  final Logger log;
+
+  DatabaseMapper({required this.log});
+
+  Movie toMovie(MoviesDbEntity entity) {
+    try {
+      return Movie(
+        id: entity.movieId,
+        title: entity.title,
+        imageUrl: entity.imageUrl,
+        releaseDate: DateTime.fromMillisecondsSinceEpoch(entity.releaseDate),
+      );
+    } catch (e) {
+      throw ExceptionMapper<MoviesDbEntity, Movie>(e.toString());
+    }
+  }
+
+  List<Movie> toMovies(List<MoviesDbEntity> entities) {
+    final List<Movie> movies = [];
+
+    for (final entity in entities) {
+      try {
+        movies.add(toMovie(entity));
+      } catch (e) {
+        log.w('Could not map entity ${entity.movieId}', error: e);
+      }
+    }
+
+    return movies;
+  }
+
+  MoviesDbEntity toMoviesDbEntity(Movie movies) {
+    try {
+      return MoviesDbEntity(
+        id: null,
+        movieId: movies.id,
+        title: movies.title,
+        releaseDate: movies.releaseDate.millisecondsSinceEpoch,
+      );
+    } catch (e) {
+      throw ExceptionMapper<Movie, MoviesDbEntity>(e.toString());
+    }
+  }
+}
