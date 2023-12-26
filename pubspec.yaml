@@ -9,6 +9,7 @@ environment:
   sdk: ">=3.2.3 <4.0.0"
 
 dependencies:
+  flutter_launcher_icons: "^0.13.1"
   cached_network_image: ^3.3.0
   dio: ^5.4.0
   flutter:
@@ -30,6 +31,13 @@ dev_dependencies:
   freezed: ^2.4.6
   json_serializable: ^6.7.1
   lint: ^2.2.0
+
+# Flutter launcher icons
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/movies_app.png"
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true
